@@ -43,10 +43,10 @@
     "test:ci": "vitest run",
     "test": "vitest",
     "=============== RUNNING ===============": "",
-    "dev:watch": "pnpm clean && run-p --print-label build:watch compile:watch copy:watch",
     "dev": "nodemon --config bin/nodemon/dev.json",
     "run": "node --experimental-specifier-resolution=node --no-warnings dist/index.js --runAll",
-    "start": "run-s build:clean run"
+    "start": "run-s build:clean run",
+    "watch": "pnpm clean && run-p --print-label build:watch compile:watch copy:watch"
   },
   "lint-staged": {
     "*": "eslint --fix",
