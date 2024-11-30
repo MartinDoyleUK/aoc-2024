@@ -1,0 +1,77 @@
+{
+  "name": "aoc-2024",
+  "version": "1.0.0",
+  "description": "Advent of Code 2024",
+  "keywords": [
+    "advent of code",
+    "aoc",
+    "2024"
+  ],
+  "license": "UNLICENSED",
+  "author": {
+    "name": "Martin Doyle",
+    "email": "github@martindoyle.com",
+    "url": "https://martindoyle.com"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "=============== LIFECYCLE ===============": "",
+    "prepare": "husky",
+    "=============== CLEANING ===============": "",
+    "clean": "rm -rf dist/ tsconfig.tsbuildinfo",
+    "=============== BUILDING ===============": "",
+    "build:clean": "run-s clean build",
+    "build:watch:clean": "run-s clean build:watch",
+    "build:watch": "run-p copy:watch compile:watch",
+    "build": "run-p copy compile",
+    "compile:watch": "tsc --watch",
+    "compile": "tsc",
+    "copy:clean": "run-s clean copy",
+    "copy:watch": "copy-and-watch --watch \"src/**/*.txt\" \"dist\"",
+    "copy": "copyfiles -u 1 src/**/*.txt dist/",
+    "=============== LINTING ===============": "",
+    "lint:checktypes": "tsc --noEmit",
+    "lint:eslint:fix": "eslint --fix",
+    "lint:eslint": "eslint",
+    "lint:fix": "run-p --aggregate-output --print-label lint:eslint:fix lint:checktypes",
+    "lint": "run-p --continue-on-error --aggregate-output --print-label lint:eslint lint:checktypes",
+    "=============== TESTING ===============": "",
+    "test:ci": "vitest run",
+    "test": "vitest",
+    "=============== RUNNING ===============": "",
+    "dev:watch": "pnpm clean && run-p --print-label build:watch compile:watch copy:watch",
+    "dev": "nodemon --config bin/nodemon/dev.json",
+    "run": "node --experimental-specifier-resolution=node --no-warnings dist/index.js --runAll",
+    "start": "run-s build:clean run"
+  },
+  "lint-staged": {
+    "*": "eslint --fix",
+    "*.{ts,tsx}": "bash -c tsc --noEmit"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "lodash": "^4.17.21",
+    "number-to-words": "^1.2.4"
+  },
+  "devDependencies": {
+    "@martindoyle/tsconfig": "^1.2.0",
+    "@types/lodash": "^4.17.13",
+    "@types/node": "^22.10.1",
+    "@types/number-to-words": "^1.2.3",
+    "copy-and-watch": "^0.1.8",
+    "copyfiles": "^2.4.1",
+    "date-fns": "^4.1.0",
+    "eslint": "^9.16.0",
+    "eslint-config-canonical": "^44.3.31",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "nodemon": "^3.1.7",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.6"
+  }
+}
