@@ -6,6 +6,21 @@ This repo is to store my [Advent of Code](https://adventofcode.com/) submissions
 
 You will need [pnpm](https://pnpm.io/) to run this properly. Just use `npm i -g pnpm` to get setup with it. Then simply go to the project folder and run `pnpm i` to install the dependencies.
 
+> [!IMPORTANT]
+> You **MUST** setup your own `inputs` folder in the root directory. In this repository it's been setup as a submodule to a private repository (Advent of Code do not want people sharing inputs), which you could do as well, but instead of a submodule you may prefer just a local folder and to update the `.gitignore` file to exclude it being committed.
+>
+> In the `inputs` folder, there should be a folder structure that mirrors the `src/puzzles` structure, i.e. a folder for each day and also a `TEMPLATE` folder.
+>
+> Here's an example subfolder structure:
+> ```
+> <rootDir>
+>  └─ inputs
+>    └─ 01
+>      ├─ data.txt
+>      ├─ test-data-01.txt
+>      └─ test-data-02.txt
+> ```
+
 ## Running
 
 To run the whole project, just run `pnpm start`, which will run all of the days' tasks.

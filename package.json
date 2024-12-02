@@ -45,7 +45,7 @@
     "=============== RUNNING ===============": "",
     "dev": "nodemon --config bin/nodemon/dev.json",
     "runAll": "node dist/index.js --runAll",
-    "start": "run-s build:clean run",
+    "start": "run-s build:clean runAll",
     "watch": "pnpm clean && run-p --print-label build:watch compile:watch copy:watch"
   },
   "lint-staged": {

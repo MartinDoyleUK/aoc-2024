@@ -1,32 +1,15 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
-import fs from 'node:fs';
-import path from 'node:path';
-import url from 'node:url';
-
-import { logAnswer } from '../../utils/index.js';
+import { getDataForPuzzle, logAnswer } from '../../utils/index.js';
 
 // Toggle this to use test or real data
 const USE_TEST_DATA = false;
 
 // Load data from files
-const THIS_FILENAME = url.fileURLToPath(import.meta.url);
-const THIS_DIRNAME = path.dirname(THIS_FILENAME);
-const PATHS = {
-  DATA: path.join(THIS_DIRNAME, 'data.txt'),
-  TEST_DATA_01: path.join(THIS_DIRNAME, 'test-data-01.txt'),
-  TEST_DATA_02: path.join(THIS_DIRNAME, 'test-data-02.txt'),
-};
-const DATA = {
-  REAL: fs.readFileSync(PATHS.DATA, 'utf8') as string,
-  TEST1: fs.readFileSync(PATHS.TEST_DATA_01, 'utf8') as string,
-  TEST2: fs.readFileSync(PATHS.TEST_DATA_02, 'utf8') as string,
-};
+const data = getDataForPuzzle(import.meta.url);
 
 // Run task one
 const runOne = () => {
   const taskStartedAt = performance.now();
-  const dataToUse = USE_TEST_DATA ? DATA.TEST1 : DATA.REAL;
+  const dataToUse = USE_TEST_DATA ? data.TEST1 : data.REAL;
   const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
 
   const firstCol: number[] = [];
@@ -41,7 +24,6 @@ const runOne = () => {
   secondCol.sort((a, b) => a - b);
 
   let total = 0;
-  // eslint-disable-next-line unicorn/no-for-loop
   for (let index = 0; index < firstCol.length; index++) {
     total += Math.abs(firstCol[index]! - secondCol[index]!);
   }
@@ -57,7 +39,7 @@ const runOne = () => {
 // Run task two
 const runTwo = () => {
   const taskStartedAt = performance.now();
-  const dataToUse = USE_TEST_DATA ? DATA.TEST2 : DATA.REAL;
+  const dataToUse = USE_TEST_DATA ? data.TEST2 : data.REAL;
   const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
 
   let similarity = 0;

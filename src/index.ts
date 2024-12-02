@@ -37,7 +37,6 @@ const run = async () => {
   const startIndex = runAll ? 0 : allPuzzlePaths.length - 1;
   const endIndex = allPuzzlePaths.length;
   for (let index = startIndex; index < endIndex; index++) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const nextPuzzlePath = allPuzzlePaths[index]!;
     const relativePath = `./${path.relative(HERE, nextPuzzlePath)}/index.js`;
     const [, day] = DAY_REGEX.exec(relativePath) ?? [];
