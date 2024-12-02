@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import fs from 'node:fs';
 import path from 'node:path';
 import url from 'node:url';
@@ -23,32 +21,42 @@ const DATA = {
   TEST2: fs.readFileSync(PATHS.TEST_DATA_02, 'utf8') as string,
 };
 
+const isReportSafe = (reportLevels: number[]) => {
+  let direction: 'down' | 'up' | undefined;
+  let lastLevel: number;
+
+  return reportLevels.every((nextLevel) => {
+    if (lastLevel !== undefined) {
+      const diff = lastLevel - nextLevel;
+      if (diff === 0 || Math.abs(diff) > 3 || (direction === 'up' && diff > 0) || (direction === 'down' && diff < 0)) {
+        return false;
+      }
+
+      if (direction === undefined) {
+        direction = diff < 0 ? 'up' : 'down';
+      }
+    }
+
+    lastLevel = nextLevel;
+    return true;
+  });
+};
+
 // Run task one
 const runOne = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? DATA.TEST1 : DATA.REAL;
   const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
 
-  const firstCol: number[] = [];
-  const secondCol: number[] = [];
-  for (const nextLine of lines) {
-    const [first, second] = nextLine.split(/ +/u);
-    firstCol.push(Number.parseInt(first!, 10));
-    secondCol.push(Number.parseInt(second!, 10));
-  }
+  const safeReports = lines.filter((nextLine) => {
+    const reportLevels = nextLine.split(' ').map((value) => Number.parseInt(value, 10));
 
-  firstCol.sort((a, b) => a - b);
-  secondCol.sort((a, b) => a - b);
-
-  let total = 0;
-  // eslint-disable-next-line unicorn/no-for-loop
-  for (let index = 0; index < firstCol.length; index++) {
-    total += Math.abs(firstCol[index]! - secondCol[index]!);
-  }
+    return isReportSafe(reportLevels);
+  });
 
   logAnswer({
-    answer: total,
-    expected: USE_TEST_DATA ? 11 : 1_579_939,
+    answer: safeReports.length,
+    expected: USE_TEST_DATA ? 2 : 585,
     partNum: 1,
     taskStartedAt,
   });
@@ -60,26 +68,28 @@ const runTwo = () => {
   const dataToUse = USE_TEST_DATA ? DATA.TEST2 : DATA.REAL;
   const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
 
-  let similarity = 0;
-  const occurrenceCount = new Map<number, number>();
+  const safeReports = lines.filter((nextLine) => {
+    const reportLevels = nextLine.split(' ').map((value) => Number.parseInt(value, 10));
 
-  const firstCol: number[] = [];
-  for (const nextLine of lines) {
-    const [first, second] = nextLine.split(/ +/u);
-    firstCol.push(Number.parseInt(first!, 10));
+    if (isReportSafe(reportLevels)) {
+      return true;
+    }
 
-    const secondNumber = Number.parseInt(second!, 10);
-    const previousOccurrence = occurrenceCount.get(secondNumber) ?? 0;
-    occurrenceCount.set(secondNumber, previousOccurrence + 1);
-  }
+    // Brute force ... ugly!
+    for (let index = 0; index < reportLevels.length; index++) {
+      const cloned = reportLevels.slice();
+      cloned.splice(index, 1);
+      if (isReportSafe(cloned)) {
+        return true;
+      }
+    }
 
-  for (const nextNumber of firstCol) {
-    similarity += nextNumber * (occurrenceCount.get(nextNumber) ?? 0);
-  }
+    return false;
+  });
 
   logAnswer({
-    answer: similarity,
-    expected: USE_TEST_DATA ? 31 : 20_351_745,
+    answer: safeReports.length,
+    expected: USE_TEST_DATA ? 4 : 626,
     partNum: 2,
     taskStartedAt,
   });
