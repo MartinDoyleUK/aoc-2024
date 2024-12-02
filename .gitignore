@@ -7,5 +7,5 @@
 tsconfig.tsbuildinfo
 
 # Test data
-**/data.txt
-!**/TEMPLATE/data.txt
+/src/**/*.txt
+!/src/**/TEMPLATE/*.txt
