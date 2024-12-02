@@ -49,7 +49,7 @@
     "watch": "pnpm clean && run-p --print-label build:watch compile:watch copy:watch"
   },
   "lint-staged": {
-    "*": "eslint --fix",
+    "*.{js,jsx,cjs,mjs,ts,tsx}": "eslint --fix",
     "*.{ts,tsx}": "bash -c tsc --noEmit"
   },
   "dependencies": {
