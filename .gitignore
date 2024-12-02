@@ -5,3 +5,7 @@
 
 # Files
 tsconfig.tsbuildinfo
+
+# Test data
+**/data.txt
+!**/TEMPLATE/data.txt
