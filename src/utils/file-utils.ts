@@ -7,12 +7,13 @@ type GetDataForPuzzleFn = (importUrl: string) => { REAL: string; TEST1: string; 
 const THIS_FILE = url.fileURLToPath(import.meta.url);
 const THIS_DIR = path.dirname(THIS_FILE);
 const INPUTS_ROOTDIR = path.resolve(THIS_DIR, '../../inputs');
+const PUZZLE_NUM_REGEX = /(\d{2}).js$/u;
 
 export const getDataForPuzzle: GetDataForPuzzleFn = (importUrl) => {
   // Work out where to get the puzzle inputs
   const puzzleFilename = url.fileURLToPath(importUrl);
-  const puzzleDirNum = path.dirname(puzzleFilename).split(path.sep).at(-1)!;
-  const inputsFolder = path.join(INPUTS_ROOTDIR, puzzleDirNum);
+  const [, dayNum] = puzzleFilename.match(PUZZLE_NUM_REGEX)!;
+  const inputsFolder = path.join(INPUTS_ROOTDIR, dayNum!);
   const paths = {
     DATA: path.join(inputsFolder, 'data.txt'),
     TEST_DATA_01: path.join(inputsFolder, 'test-data-01.txt'),

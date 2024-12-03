@@ -13,7 +13,7 @@ export const overrides = {
       ERROR,
       {
         ignoreExporting: true,
-        regex: '^[a-z]+((\\.|-)[a-z]+)*$',
+        regex: '^[a-zA-Z0-9]+((\\.|-)[a-zA-Z0-9]+)*$',
       },
     ],
   },

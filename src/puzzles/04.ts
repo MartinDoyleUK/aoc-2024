@@ -1,4 +1,4 @@
-import { getDataForPuzzle, logAnswer } from '../../utils/index.js';
+import { getDataForPuzzle, logAnswer } from '../utils/index.js';
 
 // Toggle this to use test or real data
 const USE_TEST_DATA = true;
