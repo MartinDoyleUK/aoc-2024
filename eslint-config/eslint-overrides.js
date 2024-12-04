@@ -6,6 +6,8 @@ import { OFF } from './constants.js';
 export const overrides = {
   files: canonicalRecommended.files,
   rules: {
+    '@typescript-eslint/array-type': OFF,
     '@typescript-eslint/no-non-null-assertion': OFF,
+    'id-length': OFF,
   },
 };

@@ -1,6 +1,6 @@
 import { recommended as canonicalRecommended } from 'eslint-config-canonical/configurations/canonical.js';
 
-import { ERROR } from './constants.js';
+import { ERROR, OFF } from './constants.js';
 
 /** @type {import('eslint').Linter.Config} */
 export const overrides = {
@@ -33,5 +33,6 @@ export const overrides = {
         type: 'natural',
       },
     ],
+    'perfectionist/sort-switch-case': OFF,
   },
 };
