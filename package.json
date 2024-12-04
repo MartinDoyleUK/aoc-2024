@@ -21,6 +21,8 @@
   "scripts": {
     "=============== LIFECYCLE ===============": "",
     "prepare": "husky",
+    "=============== UTILITY ===============": "",
+    "sub": "git submodule update --remote --merge",
     "=============== CLEANING ===============": "",
     "clean": "rm -rf dist/ tsconfig.tsbuildinfo",
     "=============== BUILDING ===============": "",
