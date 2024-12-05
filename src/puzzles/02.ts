@@ -31,7 +31,10 @@ const isReportSafe = (reportLevels: number[]) => {
 const runOne = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? data.TEST1 : data.REAL;
-  const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
+  const lines = dataToUse
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 
   const safeReports = lines.filter((nextLine) => {
     const reportLevels = nextLine.split(' ').map((value) => Number.parseInt(value, 10));
@@ -51,7 +54,10 @@ const runOne = () => {
 const runTwo = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? data.TEST2 : data.REAL;
-  const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
+  const lines = dataToUse
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 
   const safeReports = lines.filter((nextLine) => {
     const reportLevels = nextLine.split(' ').map((value) => Number.parseInt(value, 10));

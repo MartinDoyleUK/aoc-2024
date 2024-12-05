@@ -10,7 +10,10 @@ const data = getDataForPuzzle(import.meta.url);
 const runOne = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? data.TEST1 : data.REAL;
-  const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
+  const lines = dataToUse
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 
   const firstCol: number[] = [];
   const secondCol: number[] = [];
@@ -40,7 +43,10 @@ const runOne = () => {
 const runTwo = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? data.TEST2 : data.REAL;
-  const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
+  const lines = dataToUse
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 
   let similarity = 0;
   const occurrenceCount = new Map<number, number>();

@@ -18,7 +18,10 @@ const DIRECTIONS: Direction[] = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
 const runOne = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? data.TEST1 : data.REAL;
-  const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
+  const lines = dataToUse
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 
   const numRows = lines.length;
   const numCols = lines[0]!.length;
@@ -135,7 +138,10 @@ const runOne = () => {
 const runTwo = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? data.TEST2 : data.REAL;
-  const lines = dataToUse.split('\n').filter((line) => line.trim().length > 0);
+  const lines = dataToUse
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 
   const numRows = lines.length;
   const numCols = lines[0]!.length;
