@@ -6,8 +6,8 @@ const ROUNDED_NUMBER_FORMATTER = new Intl.NumberFormat('en-GB', {
   maximumFractionDigits: 0,
 });
 
-const TWO_DP_FORMATTER = new Intl.NumberFormat('en-GB', {
-  maximumFractionDigits: 2,
+const ONE_DP_FORMATTER = new Intl.NumberFormat('en-GB', {
+  maximumFractionDigits: 1,
 });
 
 export const timeSinceStarted = (timeStarted: number) => {
@@ -18,9 +18,9 @@ export const timeSinceStarted = (timeStarted: number) => {
     return ROUNDED_NUMBER_FORMATTER.format((now - timeStarted) * 1_000) + 'µs';
   }
 
-  // If less than 5ms then display in milliseconds to 2DP
+  // If less than 5ms then display in milliseconds to 1DP
   if (now - timeStarted < 5) {
-    return TWO_DP_FORMATTER.format(now - timeStarted) + 'ms';
+    return ONE_DP_FORMATTER.format(now - timeStarted) + 'ms';
   }
 
   // If less than 10s then display in milliseconds
