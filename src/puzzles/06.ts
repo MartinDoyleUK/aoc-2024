@@ -1,4 +1,4 @@
-import { getDataForPuzzle, logAnswer } from '../utils/index.js';
+import { getDataForPuzzle, logAnswer, pointToString, stringToPoint } from '../utils/index.js';
 
 // eslint-disable-next-line perfectionist/sort-union-types
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
@@ -8,15 +8,6 @@ const USE_TEST_DATA = false;
 
 // Load data from files
 const data = getDataForPuzzle(import.meta.url);
-
-const toPoint = ({ col, row }: { col: number; row: number }): string => {
-  return `${row},${col}`;
-};
-
-const fromPoint = (point: string): { col: number; row: number } => {
-  const [row, col] = point.split(',').map((rowOrCol) => Number.parseInt(rowOrCol, 10)) as [number, number];
-  return { col, row };
-};
 
 const getNextDirection = (currDirection: Direction): Direction => {
   if (currDirection === 'UP') {
@@ -38,23 +29,23 @@ const countVisitedPositions = (grid: string[][], obstacles: Set<string>, startin
     let offGrid = false;
     let nextPosition = startingPosition;
     while (!offGrid) {
-      const { col, row } = fromPoint(nextPosition);
+      const { col, row } = stringToPoint(nextPosition);
       if (direction === 'UP') {
-        nextPosition = toPoint({ col, row: row - 1 });
+        nextPosition = pointToString({ col, row: row - 1 });
       } else if (direction === 'DOWN') {
-        nextPosition = toPoint({ col, row: row + 1 });
+        nextPosition = pointToString({ col, row: row + 1 });
       } else if (direction === 'LEFT') {
-        nextPosition = toPoint({ col: col - 1, row });
+        nextPosition = pointToString({ col: col - 1, row });
       } else if (direction === 'RIGHT') {
-        nextPosition = toPoint({ col: col + 1, row });
+        nextPosition = pointToString({ col: col + 1, row });
       }
 
-      const { col: newCol, row: newRow } = fromPoint(nextPosition);
+      const { col: newCol, row: newRow } = stringToPoint(nextPosition);
       if (newRow < 0 || newRow >= grid.length || newCol < 0 || newCol >= grid[0]!.length) {
         offGrid = true;
       } else if (obstacles.has(nextPosition)) {
         direction = getNextDirection(direction);
-        nextPosition = toPoint({ col, row });
+        nextPosition = pointToString({ col, row });
       } else {
         visited.add(nextPosition);
       }
@@ -73,23 +64,23 @@ const getsInLoop = (grid: string[][], obstacles: Set<string>, startingPosition?:
     let offGrid = false;
     let nextPosition = startingPosition;
     while (!offGrid) {
-      const { col, row } = fromPoint(nextPosition);
+      const { col, row } = stringToPoint(nextPosition);
       if (direction === 'UP') {
-        nextPosition = toPoint({ col, row: row - 1 });
+        nextPosition = pointToString({ col, row: row - 1 });
       } else if (direction === 'DOWN') {
-        nextPosition = toPoint({ col, row: row + 1 });
+        nextPosition = pointToString({ col, row: row + 1 });
       } else if (direction === 'LEFT') {
-        nextPosition = toPoint({ col: col - 1, row });
+        nextPosition = pointToString({ col: col - 1, row });
       } else if (direction === 'RIGHT') {
-        nextPosition = toPoint({ col: col + 1, row });
+        nextPosition = pointToString({ col: col + 1, row });
       }
 
-      const { col: newCol, row: newRow } = fromPoint(nextPosition);
+      const { col: newCol, row: newRow } = stringToPoint(nextPosition);
       if (newRow < 0 || newRow >= grid.length || newCol < 0 || newCol >= grid[0]!.length) {
         offGrid = true;
       } else if (obstacles.has(nextPosition)) {
         direction = getNextDirection(direction);
-        nextPosition = toPoint({ col, row });
+        nextPosition = pointToString({ col, row });
 
         if (turnedAt.has(`${nextPosition}${direction}`)) {
           isLoopFound = true;
@@ -120,7 +111,7 @@ const runOne = () => {
     const nextRow = grid[row]!;
     for (let col = 0; col < nextRow.length; col++) {
       const nextCell = nextRow[col]!;
-      const nextPoint = toPoint({ col, row });
+      const nextPoint = pointToString({ col, row });
       if (nextCell === '#') {
         obstacles.add(nextPoint);
       } else if (nextCell === '^') {
@@ -156,7 +147,7 @@ const runTwo = () => {
     const nextRow = grid[row]!;
     for (let col = 0; col < nextRow.length; col++) {
       const nextCell = nextRow[col]!;
-      const nextPoint = toPoint({ col, row });
+      const nextPoint = pointToString({ col, row });
       if (nextCell === '#') {
         obstacles.add(nextPoint);
       } else if (nextCell === '^') {
@@ -169,7 +160,7 @@ const runTwo = () => {
   for (let row = 0; row < grid.length; row++) {
     const nextRow = grid[row]!;
     for (let col = 0; col < nextRow.length; col++) {
-      const newObstacle = toPoint({ col, row });
+      const newObstacle = pointToString({ col, row });
       const tempObstacles = new Set([newObstacle, ...obstacles]);
       if (getsInLoop(grid, tempObstacles, startingPosition)) {
         validObstacles++;
