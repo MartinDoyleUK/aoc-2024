@@ -21,7 +21,7 @@ const getNextDirection = (currDirection: Direction): Direction => {
   }
 };
 
-const countVisitedPositions = (grid: string[][], obstacles: Set<string>, startingPosition?: string) => {
+const getVisitedPositions = (grid: string[][], obstacles: Set<string>, startingPosition?: string): Set<string> => {
   const visited = new Set<string>();
 
   if (startingPosition !== undefined) {
@@ -52,7 +52,7 @@ const countVisitedPositions = (grid: string[][], obstacles: Set<string>, startin
     }
   }
 
-  return visited.size;
+  return visited;
 };
 
 const getsInLoop = (grid: string[][], obstacles: Set<string>, startingPosition?: string) => {
@@ -120,10 +120,10 @@ const runOne = () => {
     }
   }
 
-  const visitedCount = countVisitedPositions(grid, obstacles, startingPosition);
+  const visitedPositions = getVisitedPositions(grid, obstacles, startingPosition);
 
   logAnswer({
-    answer: visitedCount,
+    answer: visitedPositions.size,
     expected: USE_TEST_DATA ? 41 : 5_131,
     partNum: 1,
     taskStartedAt,
@@ -156,15 +156,13 @@ const runTwo = () => {
     }
   }
 
+  const visitedPositions = getVisitedPositions(grid, obstacles, startingPosition);
+
   let validObstacles = 0;
-  for (let row = 0; row < grid.length; row++) {
-    const nextRow = grid[row]!;
-    for (let col = 0; col < nextRow.length; col++) {
-      const newObstacle = pointToString({ col, row });
-      const tempObstacles = new Set([newObstacle, ...obstacles]);
-      if (getsInLoop(grid, tempObstacles, startingPosition)) {
-        validObstacles++;
-      }
+  for (const nextPosition of visitedPositions) {
+    const tempObstacles = new Set([nextPosition, ...obstacles]);
+    if (getsInLoop(grid, tempObstacles, startingPosition)) {
+      validObstacles++;
     }
   }
 
