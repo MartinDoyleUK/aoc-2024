@@ -1,19 +1,19 @@
-import { getDataForPuzzle, logAnswer, pointToString } from '../utils/index.js';
+import { getDataForPuzzle, type Grid, gridRefToPoint, logAnswer, type Point } from '../utils/index.js';
 
 type GetTrailheadScoreFn = (params: {
   col: number;
-  grid: number[][];
-  path?: string[];
+  grid: Grid<number>;
+  path?: Point[];
   prevVal?: number;
   row: number;
 }) => number;
 
 type VisitTrailheadSummitsFn = (params: {
   col: number;
-  grid: number[][];
+  grid: Grid<number>;
   prevVal?: number;
   row: number;
-  summits: Set<string>;
+  summits: Set<Point>;
 }) => void;
 
 // Toggle this to use test or real data
@@ -24,7 +24,7 @@ const data = getDataForPuzzle(import.meta.url);
 
 const getTrailheadScore: GetTrailheadScoreFn = ({ col, grid, path = [], prevVal, row }) => {
   const thisVal = grid[row]?.[col];
-  const thisPoint = pointToString({ col, row });
+  const thisPoint = gridRefToPoint({ col, row });
   if (thisVal === undefined) {
     return 0;
   } else if (prevVal !== undefined && thisVal !== prevVal + 1) {
@@ -56,7 +56,7 @@ const getTrailheadScore: GetTrailheadScoreFn = ({ col, grid, path = [], prevVal,
 
 const visitTrailheadSummits: VisitTrailheadSummitsFn = ({ col, grid, prevVal, row, summits }) => {
   const thisVal = grid[row]?.[col];
-  const thisPoint = pointToString({ col, row });
+  const thisPoint = gridRefToPoint({ col, row });
   if (thisVal === undefined) {
     return;
   } else if (prevVal !== undefined && thisVal !== prevVal + 1) {
@@ -100,7 +100,7 @@ const runOne = () => {
     for (let col = 0; col < nextRow.length; col++) {
       const nextCell = nextRow[col]!;
       if (nextCell === 0) {
-        const summits = new Set<string>();
+        const summits = new Set<Point>();
         visitTrailheadSummits({ col, grid, row, summits });
         totalScore += summits.size;
       }

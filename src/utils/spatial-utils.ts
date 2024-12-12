@@ -1,19 +1,32 @@
-import { type Point } from '../types/index.js';
+export type Grid<T = number | string> = T[][];
 
-type IsPointWithinGridFn = (params: { grid: string[]; point: Point }) => boolean;
-
-export const pointToString = ({ col, row }: Point): string => {
-  return `${row},${col}`;
+export type GridRef = {
+  col: number;
+  row: number;
 };
 
-export const stringToPoint = (point: string): Point => {
-  const [row, col] = point.split(',').map((rowOrCol) => Number.parseInt(rowOrCol, 10)) as [number, number];
+export type Point = Symbol;
+
+export type Vector = {
+  col: number;
+  row: number;
+};
+
+type IsWithinGridFn<T = number | string> = (pointOrGridRef: GridRef | Point, grid: Grid<T>) => boolean;
+
+export const gridRefToPoint = ({ col, row }: GridRef): Point => {
+  return Symbol.for(`${row},${col}`);
+};
+
+export const pointToGridRef = (pointSymbol: Point): GridRef => {
+  const [row, col] = pointSymbol.description!.split(',').map(Number) as [number, number];
   return { col, row };
 };
 
-export const isPointWithinGrid: IsPointWithinGridFn = ({ grid, point }) => {
+export const isWithinGrid: IsWithinGridFn = (pointOrGridRef, grid) => {
   const numRows = grid.length;
   const numCols = grid[0]!.length;
-  const { col, row } = point;
+  const { col, row } =
+    typeof pointOrGridRef === 'symbol' ? pointToGridRef(pointOrGridRef) : (pointOrGridRef as GridRef);
   return row >= 0 && row < numRows && col >= 0 && col < numCols;
 };

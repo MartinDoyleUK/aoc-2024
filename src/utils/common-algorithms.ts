@@ -83,7 +83,7 @@ export const memoize = <Args, Result>(
   countExecutions = false,
 ): ((argsObject: Args) => Result) => {
   const resultsMap = new Map<string, Result>();
-  const argumentCounts = new Map<string, number>();
+  const argumentCounts = countExecutions ? new Map<string, number>() : undefined;
 
   const memoized = (argsObject: Args) => {
     const argsString = JSON.stringify(argsObject);
@@ -92,16 +92,18 @@ export const memoize = <Args, Result>(
     }
 
     if (countExecutions) {
-      const existingCount = argumentCounts.get(argsString) ?? 0;
-      argumentCounts.set(argsString, existingCount + 1);
+      const existingCount = argumentCounts!.get(argsString) ?? 0;
+      argumentCounts!.set(argsString, existingCount + 1);
     }
 
     return resultsMap.get(argsString)!;
   };
 
-  Object.assign(memoized, {
-    getCounts: () => argumentCounts,
-  });
+  if (countExecutions) {
+    Object.assign(memoized, {
+      getCounts: () => argumentCounts!,
+    });
+  }
 
   return memoized;
 };

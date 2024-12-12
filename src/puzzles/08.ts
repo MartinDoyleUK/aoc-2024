@@ -1,9 +1,18 @@
-import { type Point, type Vector } from '../types/index.js';
-import { getDataForPuzzle, isPointWithinGrid, logAnswer, pointToString, stringToPoint } from '../utils/index.js';
+import {
+  getDataForPuzzle,
+  type Grid,
+  type GridRef,
+  gridRefToPoint,
+  isWithinGrid,
+  logAnswer,
+  type Point,
+  pointToGridRef,
+  type Vector,
+} from '../utils/index.js';
 
-type AddAntinodesFn = (params: { antinodes: Set<string>; grid: string[]; startPos: Point; vector: Vector }) => void;
+type AddAntinodesFn = (params: { antinodes: Set<Point>; grid: Grid<string>; startPos: Point; vector: Vector }) => void;
 
-type Antennas = Map<string, string[]>;
+type Antennas = Map<string, Point[]>;
 
 // Toggle this to use test or real data
 const USE_TEST_DATA = false;
@@ -13,8 +22,8 @@ const data = getDataForPuzzle(import.meta.url);
 
 const ANTENNA_REGEX = /^[A-Za-z0-9]$/u;
 
-const mapAntennas = (grid: string[]): Antennas => {
-  const antennas = new Map<string, string[]>();
+const mapAntennas = (grid: Grid<string>): Antennas => {
+  const antennas = new Map<string, Point[]>();
   const numRows = grid.length;
   const numCols = grid[0]!.length;
 
@@ -23,7 +32,7 @@ const mapAntennas = (grid: string[]): Antennas => {
     for (let col = 0; col < numCols; col++) {
       const nextCell = nextRow[col]!;
       if (ANTENNA_REGEX.test(nextCell)) {
-        const cellPos = pointToString({ col, row });
+        const cellPos = gridRefToPoint({ col, row });
         const currentAntennae = antennas.get(nextCell) ?? [];
         antennas.set(nextCell, currentAntennae.concat([cellPos]));
       }
@@ -33,30 +42,30 @@ const mapAntennas = (grid: string[]): Antennas => {
   return antennas;
 };
 
-const calculateAntinodes1 = (grid: string[], antennas: Antennas) => {
-  const antinodes = new Set<string>();
+const calculateAntinodes1 = (grid: Grid<string>, antennas: Antennas) => {
+  const antinodes = new Set<Point>();
 
   for (const nextFrequency of antennas.keys()) {
     const frequencyAntennas = antennas.get(nextFrequency)!;
     for (let i = 0; i < frequencyAntennas.length; i++) {
-      const firstAntenna = stringToPoint(frequencyAntennas[i]!);
+      const firstAntenna = pointToGridRef(frequencyAntennas[i]!);
       for (let j = i + 1; j < frequencyAntennas.length; j++) {
-        const secondAntenna = stringToPoint(frequencyAntennas[j]!);
+        const secondAntenna = pointToGridRef(frequencyAntennas[j]!);
         const pointDistances = { col: firstAntenna.col - secondAntenna.col, row: firstAntenna.row - secondAntenna.row };
-        const firstAntinode: Point = {
+        const firstAntinode: GridRef = {
           col: firstAntenna.col + pointDistances.col,
           row: firstAntenna.row + pointDistances.row,
         };
-        const secondAntinode: Point = {
+        const secondAntinode: GridRef = {
           col: secondAntenna.col - pointDistances.col,
           row: secondAntenna.row - pointDistances.row,
         };
-        if (isPointWithinGrid({ grid, point: firstAntinode })) {
-          antinodes.add(pointToString(firstAntinode));
+        if (isWithinGrid(firstAntinode, grid)) {
+          antinodes.add(gridRefToPoint(firstAntinode));
         }
 
-        if (isPointWithinGrid({ grid, point: secondAntinode })) {
-          antinodes.add(pointToString(secondAntinode));
+        if (isWithinGrid(secondAntinode, grid)) {
+          antinodes.add(gridRefToPoint(secondAntinode));
         }
       }
     }
@@ -66,32 +75,33 @@ const calculateAntinodes1 = (grid: string[], antennas: Antennas) => {
 };
 
 const addAntinodes: AddAntinodesFn = ({ antinodes, grid, startPos, vector }) => {
-  const nextPos = { col: startPos.col + vector.col, row: startPos.row + vector.row };
-  if (isPointWithinGrid({ grid, point: nextPos })) {
-    antinodes.add(pointToString(nextPos));
-    addAntinodes({ antinodes, grid, startPos: nextPos, vector });
+  const { col: startCol, row: startRow } = pointToGridRef(startPos);
+  const nextPos = { col: startCol + vector.col, row: startRow + vector.row };
+  if (isWithinGrid(nextPos, grid)) {
+    antinodes.add(gridRefToPoint(nextPos));
+    addAntinodes({ antinodes, grid, startPos: gridRefToPoint(nextPos), vector });
   }
 };
 
-const calculateAntinodes2 = (grid: string[], antennas: Antennas) => {
-  const antinodes = new Set<string>();
+const calculateAntinodes2 = (grid: Grid<string>, antennas: Antennas) => {
+  const antinodes = new Set<Point>();
 
   for (const nextFrequency of antennas.keys()) {
     const frequencyAntennas = antennas.get(nextFrequency)!;
     // console.log(`\n***** Checking frequency ${nextFrequency} with antennas [${frequencyAntennas.join('],[')}]`);
     for (let i = 0; i < frequencyAntennas.length; i++) {
-      const firstAntenna = stringToPoint(frequencyAntennas[i]!);
+      const firstAntenna = pointToGridRef(frequencyAntennas[i]!);
       for (let j = i + 1; j < frequencyAntennas.length; j++) {
-        const secondAntenna = stringToPoint(frequencyAntennas[j]!);
+        const secondAntenna = pointToGridRef(frequencyAntennas[j]!);
         const pointVector = { col: firstAntenna.col - secondAntenna.col, row: firstAntenna.row - secondAntenna.row };
 
-        antinodes.add(pointToString(firstAntenna));
-        antinodes.add(pointToString(secondAntenna));
-        addAntinodes({ antinodes, grid, startPos: secondAntenna, vector: pointVector });
+        antinodes.add(gridRefToPoint(firstAntenna));
+        antinodes.add(gridRefToPoint(secondAntenna));
+        addAntinodes({ antinodes, grid, startPos: gridRefToPoint(secondAntenna), vector: pointVector });
         addAntinodes({
           antinodes,
           grid,
-          startPos: secondAntenna,
+          startPos: gridRefToPoint(secondAntenna),
           vector: { col: -pointVector.col, row: -pointVector.row },
         });
       }
@@ -107,8 +117,8 @@ const runOne = () => {
   const dataToUse = USE_TEST_DATA ? data.TEST1 : data.REAL;
   const grid = dataToUse
     .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0) as string[];
+    .map((line) => line.trim().split(''))
+    .filter((row) => row.length > 0) as Grid<string>;
 
   const antennas = mapAntennas(grid);
   const antinodes = calculateAntinodes1(grid, antennas);
@@ -127,8 +137,8 @@ const runTwo = () => {
   const dataToUse = USE_TEST_DATA ? data.TEST2 : data.REAL;
   const grid = dataToUse
     .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+    .map((line) => line.trim().split(''))
+    .filter((row) => row.length > 0) as Grid<string>;
 
   const antennas = mapAntennas(grid);
   const antinodes = calculateAntinodes2(grid, antennas);

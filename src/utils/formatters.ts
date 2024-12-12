@@ -23,9 +23,14 @@ export const timeSinceStarted = (timeStarted: number) => {
     return ONE_DP_FORMATTER.format(now - timeStarted) + 'ms';
   }
 
-  // If less than 10s then display in milliseconds
-  if (now - timeStarted < 1_000 * 10) {
+  // If less than 2s then display in milliseconds
+  if (now - timeStarted < 1_000 * 2) {
     return ROUNDED_NUMBER_FORMATTER.format(now - timeStarted) + 'ms';
+  }
+
+  // If less than 10s then display in seconds to 1DP
+  if (now - timeStarted < 1_000 * 10) {
+    return ONE_DP_FORMATTER.format((now - timeStarted) / 1_000) + 'secs';
   }
 
   const startDate = new Date(timeStarted);
