@@ -1,19 +1,12 @@
-import { getDataForPuzzle, type Grid, gridRefToPoint, logAnswer, type Point } from '../utils/index.js';
+import { getDataForPuzzle, type Grid, linesToNumberGrid, logAnswer, Point } from '../utils/index.js';
 
-type GetTrailheadScoreFn = (params: {
-  col: number;
-  grid: Grid<number>;
-  path?: Point[];
-  prevVal?: number;
-  row: number;
-}) => number;
+type GetTrailheadScoreFn = (params: { grid: Grid<number>; path?: Point[]; point: Point; prevVal?: number }) => number;
 
 type VisitTrailheadSummitsFn = (params: {
-  col: number;
   grid: Grid<number>;
+  point: Point;
   prevVal?: number;
-  row: number;
-  summits: Set<Point>;
+  summits: Set<string>;
 }) => void;
 
 // Toggle this to use test or real data
@@ -22,9 +15,8 @@ const USE_TEST_DATA = false;
 // Load data from files
 const data = getDataForPuzzle(import.meta.url);
 
-const getTrailheadScore: GetTrailheadScoreFn = ({ col, grid, path = [], prevVal, row }) => {
-  const thisVal = grid[row]?.[col];
-  const thisPoint = gridRefToPoint({ col, row });
+const getTrailheadScore: GetTrailheadScoreFn = ({ grid, path = [], point, prevVal }) => {
+  const thisVal = grid.at(point);
   if (thisVal === undefined) {
     return 0;
   } else if (prevVal !== undefined && thisVal !== prevVal + 1) {
@@ -33,52 +25,51 @@ const getTrailheadScore: GetTrailheadScoreFn = ({ col, grid, path = [], prevVal,
     return 1;
   }
 
+  const { col, row } = point;
   const nextCells = [
-    { col, row: row + 1 },
-    { col, row: row - 1 },
-    { col: col + 1, row },
-    { col: col - 1, row },
+    new Point({ col, row: row + 1 }),
+    new Point({ col, row: row - 1 }),
+    new Point({ col: col + 1, row }),
+    new Point({ col: col - 1, row }),
   ];
 
   return nextCells.reduce((prev, next) => {
     return (
       prev +
       getTrailheadScore({
-        col: next.col,
         grid,
-        path: path.concat(thisPoint),
+        path: path.concat(point),
+        point: next,
         prevVal: thisVal,
-        row: next.row,
       })
     );
   }, 0);
 };
 
-const visitTrailheadSummits: VisitTrailheadSummitsFn = ({ col, grid, prevVal, row, summits }) => {
-  const thisVal = grid[row]?.[col];
-  const thisPoint = gridRefToPoint({ col, row });
+const visitTrailheadSummits: VisitTrailheadSummitsFn = ({ grid, point, prevVal, summits }) => {
+  const thisVal = grid.at(point);
   if (thisVal === undefined) {
     return;
   } else if (prevVal !== undefined && thisVal !== prevVal + 1) {
     return;
   } else if (thisVal === 9) {
-    summits.add(thisPoint);
+    summits.add(point.toString());
     return;
   }
 
+  const { col, row } = point;
   const nextCells = [
-    { col, row: row + 1 },
-    { col, row: row - 1 },
-    { col: col + 1, row },
-    { col: col - 1, row },
+    new Point({ col, row: row + 1 }),
+    new Point({ col, row: row - 1 }),
+    new Point({ col: col + 1, row }),
+    new Point({ col: col - 1, row }),
   ];
 
   for (const next of nextCells) {
     visitTrailheadSummits({
-      col: next.col,
       grid,
+      point: next,
       prevVal: thisVal,
-      row: next.row,
       summits,
     });
   }
@@ -88,22 +79,18 @@ const visitTrailheadSummits: VisitTrailheadSummitsFn = ({ col, grid, prevVal, ro
 const runOne = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? data.TEST1 : data.REAL;
-  const grid = dataToUse
+  const lines = dataToUse
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .map((line) => line.split('').map(Number));
+    .filter((line) => line.length > 0);
+  const grid = linesToNumberGrid(lines);
 
   let totalScore = 0;
-  for (let row = 0; row < grid.length; row++) {
-    const nextRow = grid[row]!;
-    for (let col = 0; col < nextRow.length; col++) {
-      const nextCell = nextRow[col]!;
-      if (nextCell === 0) {
-        const summits = new Set<Point>();
-        visitTrailheadSummits({ col, grid, row, summits });
-        totalScore += summits.size;
-      }
+  for (const { point, value } of grid) {
+    if (value === 0) {
+      const summits = new Set<string>();
+      visitTrailheadSummits({ grid, point, summits });
+      totalScore += summits.size;
     }
   }
 
@@ -119,21 +106,17 @@ const runOne = () => {
 const runTwo = () => {
   const taskStartedAt = performance.now();
   const dataToUse = USE_TEST_DATA ? data.TEST2 : data.REAL;
-  const grid = dataToUse
+  const lines = dataToUse
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .map((line) => line.split('').map(Number));
+    .filter((line) => line.length > 0);
+  const grid = linesToNumberGrid(lines);
 
   let totalScore = 0;
-  for (let row = 0; row < grid.length; row++) {
-    const nextRow = grid[row]!;
-    for (let col = 0; col < nextRow.length; col++) {
-      const nextCell = nextRow[col]!;
-      if (nextCell === 0) {
-        const trailheadScore = getTrailheadScore({ col, grid, row });
-        totalScore += trailheadScore;
-      }
+  for (const { point, value } of grid) {
+    if (value === 0) {
+      const trailheadScore = getTrailheadScore({ grid, point });
+      totalScore += trailheadScore;
     }
   }
 

@@ -3,5 +3,5 @@ export * from './file-utils.js';
 export * from './formatters.js';
 export * from './logging.js';
 export * from './math-utils.js';
-export * from './spatial-utils.js';
+export * from './spatial-utils/index.js';
 export * from './string-utils.js';

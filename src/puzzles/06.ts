@@ -1,4 +1,4 @@
-import { getDataForPuzzle, type Grid, gridRefToPoint, logAnswer, type Point, pointToGridRef } from '../utils/index.js';
+import { getDataForPuzzle, type Grid, linesToStringGrid, logAnswer, Point } from '../utils/index.js';
 
 // eslint-disable-next-line perfectionist/sort-union-types
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
@@ -21,33 +21,32 @@ const getNextDirection = (currDirection: Direction): Direction => {
   }
 };
 
-const getVisitedPositions = (grid: Grid<string>, obstacles: Set<Point>, startingPosition?: Point): Set<Point> => {
-  const visited = new Set<Point>();
+const getVisitedPositions = (grid: Grid<string>, obstacles: Set<string>, startingPosition?: Point): Set<string> => {
+  const visited = new Set<string>();
 
   if (startingPosition !== undefined) {
     let direction: Direction = 'UP';
     let offGrid = false;
     let nextPosition = startingPosition;
     while (!offGrid) {
-      const { col, row } = pointToGridRef(nextPosition);
+      const { col: thisCol, row: thisRow } = nextPosition;
       if (direction === 'UP') {
-        nextPosition = gridRefToPoint({ col, row: row - 1 });
+        nextPosition = new Point({ col: thisCol, row: thisRow - 1 });
       } else if (direction === 'DOWN') {
-        nextPosition = gridRefToPoint({ col, row: row + 1 });
+        nextPosition = new Point({ col: thisCol, row: thisRow + 1 });
       } else if (direction === 'LEFT') {
-        nextPosition = gridRefToPoint({ col: col - 1, row });
+        nextPosition = new Point({ col: thisCol - 1, row: thisRow });
       } else if (direction === 'RIGHT') {
-        nextPosition = gridRefToPoint({ col: col + 1, row });
+        nextPosition = new Point({ col: thisCol + 1, row: thisRow });
       }
 
-      const { col: newCol, row: newRow } = pointToGridRef(nextPosition);
-      if (newRow < 0 || newRow >= grid.length || newCol < 0 || newCol >= grid[0]!.length) {
+      if (!grid.isWithinBounds(nextPosition)) {
         offGrid = true;
-      } else if (obstacles.has(nextPosition)) {
+      } else if (obstacles.has(nextPosition.toString())) {
         direction = getNextDirection(direction);
-        nextPosition = gridRefToPoint({ col, row });
+        nextPosition = new Point({ col: thisCol, row: thisRow });
       } else {
-        visited.add(nextPosition);
+        visited.add(nextPosition.toString());
       }
     }
   }
@@ -55,7 +54,7 @@ const getVisitedPositions = (grid: Grid<string>, obstacles: Set<Point>, starting
   return visited;
 };
 
-const getsInLoop = (grid: Grid<string>, obstacles: Set<Point>, startingPosition?: Point) => {
+const getsInLoop = (grid: Grid<string>, obstacles: Set<string>, startingPosition?: Point) => {
   const turnedAt = new Set<string>();
   let isLoopFound = false;
 
@@ -64,29 +63,29 @@ const getsInLoop = (grid: Grid<string>, obstacles: Set<Point>, startingPosition?
     let offGrid = false;
     let nextPosition = startingPosition;
     while (!offGrid) {
-      const { col, row } = pointToGridRef(nextPosition);
+      const { col, row } = nextPosition;
       if (direction === 'UP') {
-        nextPosition = gridRefToPoint({ col, row: row - 1 });
+        nextPosition = new Point({ col, row: row - 1 });
       } else if (direction === 'DOWN') {
-        nextPosition = gridRefToPoint({ col, row: row + 1 });
+        nextPosition = new Point({ col, row: row + 1 });
       } else if (direction === 'LEFT') {
-        nextPosition = gridRefToPoint({ col: col - 1, row });
+        nextPosition = new Point({ col: col - 1, row });
       } else if (direction === 'RIGHT') {
-        nextPosition = gridRefToPoint({ col: col + 1, row });
+        nextPosition = new Point({ col: col + 1, row });
       }
 
-      const { col: newCol, row: newRow } = pointToGridRef(nextPosition);
-      if (newRow < 0 || newRow >= grid.length || newCol < 0 || newCol >= grid[0]!.length) {
+      const { col: newCol, row: newRow } = nextPosition;
+      if (newRow < 0 || newRow >= grid.numRows || newCol < 0 || newCol >= grid.numCols) {
         offGrid = true;
-      } else if (obstacles.has(nextPosition)) {
+      } else if (obstacles.has(nextPosition.toString())) {
         direction = getNextDirection(direction);
-        nextPosition = gridRefToPoint({ col, row });
+        nextPosition = new Point({ col, row });
 
-        if (turnedAt.has(`${nextPosition.description}${direction}`)) {
+        if (turnedAt.has(`${nextPosition}${direction}`)) {
           isLoopFound = true;
           break;
         } else {
-          turnedAt.add(`${nextPosition.description}${direction}`);
+          turnedAt.add(`${nextPosition}${direction}`);
         }
       }
     }
@@ -103,20 +102,15 @@ const runOne = () => {
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
-  const grid = lines.map((line) => line.split(''));
+  const grid = linesToStringGrid(lines);
 
-  const obstacles = new Set<Point>();
+  const obstacles = new Set<string>();
   let startingPosition: Point | undefined;
-  for (let row = 0; row < grid.length; row++) {
-    const nextRow = grid[row]!;
-    for (let col = 0; col < nextRow.length; col++) {
-      const nextCell = nextRow[col]!;
-      const nextPoint = gridRefToPoint({ col, row });
-      if (nextCell === '#') {
-        obstacles.add(nextPoint);
-      } else if (nextCell === '^') {
-        startingPosition = nextPoint;
-      }
+  for (const { point, value } of grid) {
+    if (value === '#') {
+      obstacles.add(point.toString());
+    } else if (value === '^') {
+      startingPosition = point;
     }
   }
 
@@ -139,20 +133,15 @@ const runTwo = () => {
     .split('\n')
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
-  const grid = lines.map((line) => line.split(''));
+  const grid = linesToStringGrid(lines);
 
-  const obstacles = new Set<Point>();
+  const obstacles = new Set<string>();
   let startingPosition: Point | undefined;
-  for (let row = 0; row < grid.length; row++) {
-    const nextRow = grid[row]!;
-    for (let col = 0; col < nextRow.length; col++) {
-      const nextCell = nextRow[col]!;
-      const nextPoint = gridRefToPoint({ col, row });
-      if (nextCell === '#') {
-        obstacles.add(nextPoint);
-      } else if (nextCell === '^') {
-        startingPosition = nextPoint;
-      }
+  for (const { point, value } of grid) {
+    if (value === '#') {
+      obstacles.add(point.toString());
+    } else if (value === '^') {
+      startingPosition = point;
     }
   }
 
