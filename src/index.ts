@@ -34,8 +34,8 @@ const run = async () => {
   // Run through puzzles
   logStart();
   const beforeAll = performance.now();
-  // const endIndex = 11; // Uncomment and set to desired day to watch
-  const endIndex = allPuzzlePaths.length;
+  const endIndex = 8; // Uncomment and set to desired day to watch
+  // const endIndex = allPuzzlePaths.length;
   const startIndex = runAll ? 0 : endIndex - 1;
   for (let index = startIndex; index < endIndex; index++) {
     const nextPuzzlePath = allPuzzlePaths[index]!;

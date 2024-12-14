@@ -1,7 +1,12 @@
-import { getDataForPuzzle, type Grid, linesToStringGrid, logAnswer, Point } from '../utils/index.js';
-
-// eslint-disable-next-line perfectionist/sort-union-types
-type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
+import {
+  getDataForPuzzle,
+  type Grid,
+  linesToStringGrid,
+  logAnswer,
+  type Point,
+  type Vector,
+  VECTORS,
+} from '../utils/index.js';
 
 // Toggle this to use test or real data
 const USE_TEST_DATA = false;
@@ -9,42 +14,37 @@ const USE_TEST_DATA = false;
 // Load data from files
 const data = getDataForPuzzle(import.meta.url);
 
-const getNextDirection = (currDirection: Direction): Direction => {
-  if (currDirection === 'UP') {
-    return 'RIGHT';
-  } else if (currDirection === 'RIGHT') {
-    return 'DOWN';
-  } else if (currDirection === 'DOWN') {
-    return 'LEFT';
-  } else {
-    return 'UP';
+const turnRight = (curr: Vector): Vector => {
+  if (curr.eq(VECTORS.N)) {
+    return VECTORS.E;
+  } else if (curr.eq(VECTORS.E)) {
+    return VECTORS.S;
+  } else if (curr.eq(VECTORS.S)) {
+    return VECTORS.W;
+  } else if (curr.eq(VECTORS.W)) {
+    return VECTORS.N;
   }
+
+  throw new SyntaxError(`Unexpected vector: ${curr}`);
 };
 
 const getVisitedPositions = (grid: Grid<string>, obstacles: Set<string>, startingPosition?: Point): Set<string> => {
   const visited = new Set<string>();
 
   if (startingPosition !== undefined) {
-    let direction: Direction = 'UP';
+    let direction = VECTORS.N;
     let offGrid = false;
     let nextPosition = startingPosition;
+    let thisPosition: Point;
     while (!offGrid) {
-      const { col: thisCol, row: thisRow } = nextPosition;
-      if (direction === 'UP') {
-        nextPosition = new Point({ col: thisCol, row: thisRow - 1 });
-      } else if (direction === 'DOWN') {
-        nextPosition = new Point({ col: thisCol, row: thisRow + 1 });
-      } else if (direction === 'LEFT') {
-        nextPosition = new Point({ col: thisCol - 1, row: thisRow });
-      } else if (direction === 'RIGHT') {
-        nextPosition = new Point({ col: thisCol + 1, row: thisRow });
-      }
+      thisPosition = nextPosition;
+      nextPosition = nextPosition.applyVector(direction);
 
       if (!grid.isWithinBounds(nextPosition)) {
         offGrid = true;
       } else if (obstacles.has(nextPosition.toString())) {
-        direction = getNextDirection(direction);
-        nextPosition = new Point({ col: thisCol, row: thisRow });
+        direction = turnRight(direction);
+        nextPosition = thisPosition;
       } else {
         visited.add(nextPosition.toString());
       }
@@ -59,27 +59,20 @@ const getsInLoop = (grid: Grid<string>, obstacles: Set<string>, startingPosition
   let isLoopFound = false;
 
   if (startingPosition !== undefined) {
-    let direction: Direction = 'UP';
+    let direction = VECTORS.N;
     let offGrid = false;
     let nextPosition = startingPosition;
+    let thisPosition: Point;
     while (!offGrid) {
-      const { col, row } = nextPosition;
-      if (direction === 'UP') {
-        nextPosition = new Point({ col, row: row - 1 });
-      } else if (direction === 'DOWN') {
-        nextPosition = new Point({ col, row: row + 1 });
-      } else if (direction === 'LEFT') {
-        nextPosition = new Point({ col: col - 1, row });
-      } else if (direction === 'RIGHT') {
-        nextPosition = new Point({ col: col + 1, row });
-      }
+      thisPosition = nextPosition;
+      nextPosition = nextPosition.applyVector(direction);
 
       const { col: newCol, row: newRow } = nextPosition;
       if (newRow < 0 || newRow >= grid.numRows || newCol < 0 || newCol >= grid.numCols) {
         offGrid = true;
       } else if (obstacles.has(nextPosition.toString())) {
-        direction = getNextDirection(direction);
-        nextPosition = new Point({ col, row });
+        direction = turnRight(direction);
+        nextPosition = thisPosition;
 
         if (turnedAt.has(`${nextPosition}${direction}`)) {
           isLoopFound = true;

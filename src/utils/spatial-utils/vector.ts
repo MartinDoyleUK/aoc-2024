@@ -1,8 +1,7 @@
 import { type ColRow } from './spatial-types.js';
 import { POINT_REGEX } from './spatial-utils.js';
-import { Vector } from './vector.js';
 
-export class Point {
+export class Vector {
   public get col(): number {
     return this.#col;
   }
@@ -48,40 +47,26 @@ export class Point {
     this.#col = objParams.col;
   }
 
-  public static compare(a: Point, b: Point): number {
-    if (a.col === b.col && a.row === b.row) {
-      return 0;
-    } else if (a.row < b.row) {
-      return -1;
-    } else if (a.row > b.row) {
-      return 1;
-    } else if (a.col < b.col) {
-      return -1;
-    } else {
-      return 1;
-    }
+  public eq(other: Vector): boolean {
+    return this.#col === other.#col && this.#row === other.#row;
   }
 
-  public applyVector(vector: Vector, reverse = false): Point {
-    const newCol = reverse ? this.#col - vector.col : this.#col + vector.col;
-    const newRow = reverse ? this.#row - vector.row : this.#row + vector.row;
-
-    return new Point({ col: newCol, row: newRow });
-  }
-
-  public getDistanceTo(point: Point): number {
-    const vector = this.getVectorTo(point);
-    return Math.hypot(vector.col, vector.row);
-  }
-
-  public getVectorTo(point: Point): Vector {
-    return new Vector({
-      col: point.col - this.#col,
-      row: point.row - this.#row,
-    });
+  public invert(): Vector {
+    return new Vector({ col: -this.#col, row: -this.#row });
   }
 
   public toString(): string {
     return `${this.#row},${this.#col}`;
   }
 }
+
+export const VECTORS = {
+  E: new Vector({ col: 1, row: 0 }),
+  N: new Vector({ col: 0, row: -1 }),
+  NE: new Vector({ col: 1, row: -1 }),
+  NW: new Vector({ col: -1, row: -1 }),
+  S: new Vector({ col: 0, row: 1 }),
+  SE: new Vector({ col: 1, row: 1 }),
+  SW: new Vector({ col: -1, row: 1 }),
+  W: new Vector({ col: -1, row: 0 }),
+};

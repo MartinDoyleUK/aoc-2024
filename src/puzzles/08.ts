@@ -1,4 +1,4 @@
-import { getDataForPuzzle, type Grid, linesToStringGrid, logAnswer, Point, type Vector } from '../utils/index.js';
+import { getDataForPuzzle, type Grid, linesToStringGrid, logAnswer, type Point, type Vector } from '../utils/index.js';
 
 type AddAntinodesFn = (params: { antinodes: Set<string>; grid: Grid<string>; startPos: Point; vector: Vector }) => void;
 
@@ -53,8 +53,7 @@ const calculateAntinodes1 = (grid: Grid<string>, antennas: Antennas): Set<string
 };
 
 const addAntinodes: AddAntinodesFn = ({ antinodes, grid, startPos, vector }) => {
-  const { col: startCol, row: startRow } = startPos;
-  const nextPos = new Point({ col: startCol + vector.col, row: startRow + vector.row });
+  const nextPos = startPos.applyVector(vector);
   if (grid.isWithinBounds(nextPos)) {
     antinodes.add(nextPos.toString());
     addAntinodes({ antinodes, grid, startPos: nextPos, vector });
@@ -70,16 +69,16 @@ const calculateAntinodes2 = (grid: Grid<string>, antennas: Antennas): Set<string
       const firstAntenna = frequencyAntennas[i]!;
       for (let j = i + 1; j < frequencyAntennas.length; j++) {
         const secondAntenna = frequencyAntennas[j]!;
-        const pointVector = { col: firstAntenna.col - secondAntenna.col, row: firstAntenna.row - secondAntenna.row };
+        const vector = firstAntenna.getVectorTo(secondAntenna);
 
         antinodes.add(firstAntenna.toString());
         antinodes.add(secondAntenna.toString());
-        addAntinodes({ antinodes, grid, startPos: secondAntenna, vector: pointVector });
+        addAntinodes({ antinodes, grid, startPos: secondAntenna, vector });
         addAntinodes({
           antinodes,
           grid,
           startPos: secondAntenna,
-          vector: { col: -pointVector.col, row: -pointVector.row },
+          vector: vector.invert(),
         });
       }
     }

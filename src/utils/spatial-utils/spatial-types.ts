@@ -1,4 +1,4 @@
-export type Vector = {
+export type ColRow = {
   col: number;
   row: number;
 };

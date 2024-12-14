@@ -1,5 +1,7 @@
 import { Grid } from './grid.js';
 
+export const POINT_REGEX = /^(\d+),(\d+)$/u;
+
 export const linesToNumberGrid = (lines: string[]): Grid<number> => {
   return new Grid<number>(lines.map((nextLine) => nextLine.split('').map(Number)));
 };
