@@ -38,11 +38,11 @@ const calculateAntinodes1 = (grid: Grid<string>, antennas: Antennas): Set<string
         const firstAntinode = firstAntenna.applyVector(vector, true);
         const secondAntinode = secondAntenna.applyVector(vector);
 
-        if (grid.isWithinBounds(firstAntinode)) {
+        if (grid.boundsContain(firstAntinode)) {
           antinodes.add(firstAntinode.toString());
         }
 
-        if (grid.isWithinBounds(secondAntinode)) {
+        if (grid.boundsContain(secondAntinode)) {
           antinodes.add(secondAntinode.toString());
         }
       }
@@ -54,7 +54,7 @@ const calculateAntinodes1 = (grid: Grid<string>, antennas: Antennas): Set<string
 
 const addAntinodes: AddAntinodesFn = ({ antinodes, grid, startPos, vector }) => {
   const nextPos = startPos.applyVector(vector);
-  if (grid.isWithinBounds(nextPos)) {
+  if (grid.boundsContain(nextPos)) {
     antinodes.add(nextPos.toString());
     addAntinodes({ antinodes, grid, startPos: nextPos, vector });
   }

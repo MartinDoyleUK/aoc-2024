@@ -40,7 +40,7 @@ const getVisitedPositions = (grid: Grid<string>, obstacles: Set<string>, startin
       thisPosition = nextPosition;
       nextPosition = nextPosition.applyVector(direction);
 
-      if (!grid.isWithinBounds(nextPosition)) {
+      if (!grid.boundsContain(nextPosition)) {
         offGrid = true;
       } else if (obstacles.has(nextPosition.toString())) {
         direction = turnRight(direction);
