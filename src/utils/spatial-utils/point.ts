@@ -81,6 +81,10 @@ export class Point {
     });
   }
 
+  public toJSON(): string {
+    return `Point(${this.toString()})`;
+  }
+
   public toString(): string {
     return `${this.#row},${this.#col}`;
   }

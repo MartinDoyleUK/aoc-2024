@@ -1,79 +1,10 @@
-import { getDataForPuzzle, type Grid, linesToNumberGrid, logAnswer, Point } from '../utils/index.js';
-
-type GetTrailheadScoreFn = (params: { grid: Grid<number>; path?: Point[]; point: Point; prevVal?: number }) => number;
-
-type VisitTrailheadSummitsFn = (params: {
-  grid: Grid<number>;
-  point: Point;
-  prevVal?: number;
-  summits: Set<string>;
-}) => void;
+import { getDataForPuzzle, linesToNumberGrid, logAnswer } from '../utils/index.js';
 
 // Toggle this to use test or real data
 const USE_TEST_DATA = false;
 
 // Load data from files
 const data = getDataForPuzzle(import.meta.url);
-
-const getTrailheadScore: GetTrailheadScoreFn = ({ grid, path = [], point, prevVal }) => {
-  const thisVal = grid.at(point);
-  if (thisVal === undefined) {
-    return 0;
-  } else if (prevVal !== undefined && thisVal !== prevVal + 1) {
-    return 0;
-  } else if (thisVal === 9) {
-    return 1;
-  }
-
-  const { col, row } = point;
-  const nextCells = [
-    new Point({ col, row: row + 1 }),
-    new Point({ col, row: row - 1 }),
-    new Point({ col: col + 1, row }),
-    new Point({ col: col - 1, row }),
-  ];
-
-  return nextCells.reduce((prev, next) => {
-    return (
-      prev +
-      getTrailheadScore({
-        grid,
-        path: path.concat(point),
-        point: next,
-        prevVal: thisVal,
-      })
-    );
-  }, 0);
-};
-
-const visitTrailheadSummits: VisitTrailheadSummitsFn = ({ grid, point, prevVal, summits }) => {
-  const thisVal = grid.at(point);
-  if (thisVal === undefined) {
-    return;
-  } else if (prevVal !== undefined && thisVal !== prevVal + 1) {
-    return;
-  } else if (thisVal === 9) {
-    summits.add(point.toString());
-    return;
-  }
-
-  const { col, row } = point;
-  const nextCells = [
-    new Point({ col, row: row + 1 }),
-    new Point({ col, row: row - 1 }),
-    new Point({ col: col + 1, row }),
-    new Point({ col: col - 1, row }),
-  ];
-
-  for (const next of nextCells) {
-    visitTrailheadSummits({
-      grid,
-      point: next,
-      prevVal: thisVal,
-      summits,
-    });
-  }
-};
 
 // Run task one
 const runOne = () => {
@@ -89,7 +20,30 @@ const runOne = () => {
   for (const { point, value } of grid) {
     if (value === 0) {
       const summits = new Set<string>();
-      visitTrailheadSummits({ grid, point, summits });
+      grid.traverse(point, 'dfs', {
+        onVisit: (visitInfo) => {
+          let visitNeighbours: boolean;
+          const { path, thisPointAndValue } = visitInfo;
+          const { point: thisPoint, value: currentValue } = thisPointAndValue;
+          const { value: lastValue } = path.at(-1) ?? {};
+
+          if (lastValue === undefined) {
+            visitNeighbours = currentValue === 0;
+          } else if (currentValue !== lastValue + 1) {
+            visitNeighbours = false;
+          } else if (currentValue === 9) {
+            summits.add(thisPoint.toString());
+            visitNeighbours = false;
+          } else {
+            visitNeighbours = true;
+          }
+
+          return {
+            abort: false,
+            visitNeighbours,
+          };
+        },
+      });
       totalScore += summits.size;
     }
   }
@@ -115,8 +69,32 @@ const runTwo = () => {
   let totalScore = 0;
   for (const { point, value } of grid) {
     if (value === 0) {
-      const trailheadScore = getTrailheadScore({ grid, point });
-      totalScore += trailheadScore;
+      let trailRating = 0;
+      grid.traverse(point, 'dfs', {
+        onVisit: (visitInfo) => {
+          let visitNeighbours: boolean;
+          const { path, thisPointAndValue } = visitInfo;
+          const { value: currentValue } = thisPointAndValue;
+          const { value: lastValue } = path.at(-1) ?? {};
+
+          if (lastValue === undefined) {
+            visitNeighbours = currentValue === 0;
+          } else if (currentValue !== lastValue + 1) {
+            visitNeighbours = false;
+          } else if (currentValue === 9) {
+            trailRating++;
+            visitNeighbours = false;
+          } else {
+            visitNeighbours = true;
+          }
+
+          return {
+            abort: false,
+            visitNeighbours,
+          };
+        },
+      });
+      totalScore += trailRating;
     }
   }
 

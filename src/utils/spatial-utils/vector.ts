@@ -55,8 +55,12 @@ export class Vector {
     return new Vector({ col: -this.#col, row: -this.#row });
   }
 
+  public toJSON(): string {
+    return `Vector(${this.toString()})`;
+  }
+
   public toString(): string {
-    return `${this.#row},${this.#col}`;
+    return `${this.#row > 0 ? `+${this.#row}` : this.#row},${this.#col > 0 ? `+${this.#col}` : this.#col}`;
   }
 }
 

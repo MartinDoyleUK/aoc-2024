@@ -6,20 +6,47 @@ type GridDataMap<TGridData> = Map<number, Map<number, TGridData>>;
 type GridTraversalFn<TCustomContext, TGridData> = (
   startAt: Point,
   traversalType: 'bfs' | 'dfs',
-  options?: {
+  options: {
     customContext?: TCustomContext;
+    debug?: boolean;
     directions?: Vector[];
-    onVisit?: (context: StandardTraversalContext<TGridData> & TCustomContext) => boolean;
-    shouldVisit?: (context: StandardTraversalContext<TGridData> & TCustomContext) => boolean;
+    onVisit: (info: StandardTraversalContext & TCustomContext & VisitInfo<TGridData>) => VisitResult;
   },
-) => StandardTraversalContext<TGridData> & TCustomContext;
+) => StandardTraversalContext & TCustomContext;
 
-type StandardTraversalContext<TGridData> = {
-  currentPosition?: Point;
-  currentValue?: TGridData;
-  lastVisitedPosition?: Point;
-  lastVisitedValue?: TGridData;
-  visitedPoints: Set<string>;
+type StandardTraversalContext = {
+  directions: Vector[];
+};
+
+type VisitInfo<TGridData> = {
+  path: VisitPointAndValue<TGridData>[];
+  thisPointAndValue: VisitPointAndValue<TGridData>;
+  visited: Set<string>;
+};
+
+type VisitPointAndValue<TGridData> = {
+  point: Point;
+  value?: TGridData;
+};
+
+type VisitResult = { abort: boolean; visitNeighbours: boolean };
+
+const pointAndValueToString = <TGridData>(pointAndValue: VisitPointAndValue<TGridData>): string => {
+  const { point, value } = pointAndValue;
+  return `${point.row},${point.col}=${value}`;
+};
+
+const pathToString = <TGridData>(path: VisitPointAndValue<TGridData>[]): string => {
+  if (!path || path.length === 0) {
+    return '<empty>';
+  }
+
+  return path.map(({ point: { col, row } }) => `${row},${col}`).join('=>');
+};
+
+export const visitInfoToString = <TGridData>(visitInfo: VisitInfo<TGridData>): string => {
+  const { path, thisPointAndValue } = visitInfo;
+  return `${pointAndValueToString(thisPointAndValue)} (path=${pathToString<TGridData>(path)})`;
 };
 
 export class Grid<TGridData, TTraversalContext extends Record<string, unknown> = {}> {
@@ -55,7 +82,11 @@ export class Grid<TGridData, TTraversalContext extends Record<string, unknown> =
     }
   }
 
-  public at(point: Point): TGridData | undefined {
+  public at(point?: Point): TGridData | undefined {
+    if (!point) {
+      return undefined;
+    }
+
     return this.#data.get(point.row)?.get(point.col);
   }
 
@@ -93,54 +124,70 @@ export class Grid<TGridData, TTraversalContext extends Record<string, unknown> =
     traversalType,
     {
       customContext = {} as TTraversalContext,
+      debug = false,
       directions = [VECTORS.N, VECTORS.E, VECTORS.S, VECTORS.W],
-      onVisit = () => true,
-      shouldVisit = () => true,
-    } = {},
+      onVisit,
+    },
   ) => {
-    const visitedPoints = new Set<string>();
-    const standardContext: StandardTraversalContext<TGridData> = {
-      visitedPoints,
+    const standardContext: StandardTraversalContext = {
+      directions,
     };
-    const context: StandardTraversalContext<TGridData> & TTraversalContext = {
+    const context: StandardTraversalContext & TTraversalContext = {
       ...customContext,
       ...standardContext,
     };
-    const addToVisited = (point: Point) => {
-      visitedPoints.add(point.toString());
-    };
 
-    const hasVisited = (point: Point) => {
-      return visitedPoints.has(point.toString());
-    };
+    const visit = (visitInfo: VisitInfo<TGridData>): VisitResult => {
+      const visitResult = onVisit({
+        ...context,
+        ...visitInfo,
+      });
 
-    const visit = (point: Point): boolean => {
-      context.lastVisitedPosition = context.currentPosition;
-      context.lastVisitedValue = context.currentValue;
-      context.currentPosition = point;
-      context.currentValue = this.at(point);
-
-      if (!shouldVisit(context)) {
-        return true;
+      if (debug) {
+        // eslint-disable-next-line no-console
+        console.log(`Visiting ${visitInfoToString(visitInfo)} ... ${visitResult.visitNeighbours ? '✅' : '❌'}`);
       }
 
-      return onVisit(context);
+      return visitResult;
     };
 
-    const toVisit: Point[] = [startAt];
-    addToVisited(startAt);
+    const toVisit: VisitInfo<TGridData>[] = [
+      {
+        path: [],
+        thisPointAndValue: { point: startAt, value: this.at(startAt) },
+        visited: new Set(),
+      },
+    ];
 
     const getNextPoint = traversalType === 'bfs' ? () => toVisit.shift() : () => toVisit.pop();
 
-    let nextPointToVisit: Point | undefined;
-    while ((nextPointToVisit = getNextPoint()) !== undefined) {
-      const shouldContinue = visit(nextPointToVisit);
-      if (shouldContinue) {
-        for (const nextDir of directions) {
-          const nextNeighbour = nextPointToVisit.applyVector(nextDir);
-          if (!hasVisited(nextNeighbour) && this.boundsContain(nextNeighbour)) {
-            toVisit.push(nextNeighbour);
-            addToVisited(nextNeighbour);
+    let thisVisit: undefined | VisitInfo<TGridData>;
+    while ((thisVisit = getNextPoint()) !== undefined) {
+      const {
+        thisPointAndValue: { point },
+        visited: thisVisited,
+      } = thisVisit;
+      if (!thisVisited.has(point.toString())) {
+        const { abort, visitNeighbours } = visit(thisVisit);
+        if (abort) {
+          break;
+        } else if (visitNeighbours) {
+          thisVisited.add(point.toString());
+          for (const nextDir of directions) {
+            const { path } = thisVisit;
+            const nextNeighbour = point.applyVector(nextDir);
+            const nextNeighbourValue = this.at(nextNeighbour);
+            const newPath = [
+              ...path,
+              { point: thisVisit.thisPointAndValue.point, value: thisVisit.thisPointAndValue.value },
+            ];
+            if (!thisVisited.has(nextNeighbour.toString()) && this.boundsContain(nextNeighbour)) {
+              toVisit.push({
+                path: newPath,
+                thisPointAndValue: { point: nextNeighbour, value: nextNeighbourValue },
+                visited: new Set(thisVisited),
+              });
+            }
           }
         }
       }
